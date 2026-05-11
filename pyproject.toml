@@ -1,0 +1,10 @@
+[project]
+name = "kiemtratoan"
+version = "0.1.0"
+description = "Math Quiz Generator - Ung dung tao de kiem tra Toan"
+requires-python = ">=3.9"
+dependencies = [
+    "streamlit",
+    "fpdf2",
+    "requests",
+]
