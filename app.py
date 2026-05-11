@@ -272,6 +272,7 @@ def tao_pdf(lop, thoi_gian_phut, cau_trac_nghiem, cau_tu_luan, diem_trac_nghiem,
         return None
 
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=30)
     pdf.add_page()
 
     # Them font DejaVu Sans ho tro Unicode tieng Viet
@@ -281,7 +282,7 @@ def tao_pdf(lop, thoi_gian_phut, cau_trac_nghiem, cau_tu_luan, diem_trac_nghiem,
     # Tieu de
     so_lop = lop.replace("Lớp ", "")
     pdf.set_font("DejaVu", "B", 14)
-    pdf.cell(0, 10, f"ĐỀ KIỂM TRA TOÁN - LỚP {so_lop} - THỜI GIAN: {thoi_gian_phut} PHÚT", ln=True, align="C")
+    pdf.multi_cell(0, 10, f"ĐỀ KIỂM TRA TOÁN - LỚP {so_lop} - THỜI GIAN: {thoi_gian_phut} PHÚT", align="C")
     pdf.ln(5)
 
     # Thong tin chung
@@ -304,9 +305,11 @@ def tao_pdf(lop, thoi_gian_phut, cau_trac_nghiem, cau_tu_luan, diem_trac_nghiem,
 
             pdf.set_font("DejaVu", "", 10)
             lua_chon = cau["lua_chon"]
-            # Hien thi 2 lua chon moi dong de tranh bi cat khi van ban dai
-            pdf.multi_cell(0, 6, f"    A. {lua_chon[0]}        B. {lua_chon[1]}")
-            pdf.multi_cell(0, 6, f"    C. {lua_chon[2]}        D. {lua_chon[3]}")
+            # Hien thi moi lua chon tren 1 dong rieng de tranh loi tran ngang
+            pdf.multi_cell(0, 6, f"  A. {lua_chon[0]}")
+            pdf.multi_cell(0, 6, f"  B. {lua_chon[1]}")
+            pdf.multi_cell(0, 6, f"  C. {lua_chon[2]}")
+            pdf.multi_cell(0, 6, f"  D. {lua_chon[3]}")
             pdf.ln(2)
             so_thu_tu += 1
 
