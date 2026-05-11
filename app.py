@@ -329,10 +329,10 @@ def tao_pdf(lop, thoi_gian_phut, cau_trac_nghiem, cau_tu_luan, diem_trac_nghiem,
 
             pdf.set_font("DejaVu", "", 9)
             lua_chon = cau["lua_chon"]
-            # Hien thi moi lua chon tren 1 dong rieng de tranh loi tran ngang
+            # Hien thi moi lua chon tren 1 dong rieng, thut le bang ky tu space
             for j, lc in enumerate(lua_chon):
                 nhan = chr(65 + j)  # A, B, C, D
-                pdf.cell(5, 5, "")  # Thut le
+                pdf.set_x(pdf.l_margin + 5)  # Thut le 5mm tu margin trai
                 pdf.multi_cell(w - 5, 5, f"{nhan}. {lc}")
             pdf.ln(2)
             so_thu_tu += 1
