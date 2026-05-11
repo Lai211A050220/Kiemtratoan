@@ -255,6 +255,24 @@ def tinh_diem(tong_cau, tong_diem=100):
 
 # === HAM TAO PDF === #
 # Tao file PDF voi ho tro Unicode tieng Viet
+class PDFKiemTra(FPDF):
+    """Lop PDF tu dinh nghia voi footer ban quyen"""
+
+    def __init__(self, font_path, font_bold_path):
+        super().__init__()
+        self.font_path = font_path
+        self.font_bold_path = font_bold_path
+
+    def header(self):
+        pass  # Khong can header mac dinh
+
+    def footer(self):
+        """Footer ban quyen hien thi o cuoi moi trang"""
+        self.set_y(-20)
+        self.set_font("DejaVu", "", 8)
+        self.cell(0, 10, "Bản quyền của Nguyễn Kim Thu - Trường Phùng Hưng", align="C")
+
+
 def tao_pdf(lop, thoi_gian_phut, cau_trac_nghiem, cau_tu_luan, diem_trac_nghiem, diem_tu_luan):
     """Tao file PDF de kiem tra voi font DejaVu Sans ho tro tieng Viet"""
     thu_muc_font = tai_font()
@@ -271,69 +289,70 @@ def tao_pdf(lop, thoi_gian_phut, cau_trac_nghiem, cau_tu_luan, diem_trac_nghiem,
         st.error("Khong tim thay font. Vui long thu lai.")
         return None
 
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=30)
-    pdf.add_page()
+    # Khoi tao PDF voi margin rong va auto page break
+    pdf = PDFKiemTra(font_path, font_bold_path)
+    pdf.set_margins(15, 15, 15)
+    pdf.set_auto_page_break(auto=True, margin=25)
 
     # Them font DejaVu Sans ho tro Unicode tieng Viet
-    pdf.add_font("DejaVu", "", font_path, uni=True)
-    pdf.add_font("DejaVu", "B", font_bold_path, uni=True)
+    pdf.add_font("DejaVu", "", font_path)
+    pdf.add_font("DejaVu", "B", font_bold_path)
+
+    pdf.add_page()
+
+    # Chieu rong kha dung = trang A4 (210mm) - margin trai (15) - margin phai (15) = 180mm
+    w = pdf.w - pdf.l_margin - pdf.r_margin
 
     # Tieu de
     so_lop = lop.replace("Lớp ", "")
-    pdf.set_font("DejaVu", "B", 14)
-    pdf.multi_cell(0, 10, f"ĐỀ KIỂM TRA TOÁN - LỚP {so_lop} - THỜI GIAN: {thoi_gian_phut} PHÚT", align="C")
-    pdf.ln(5)
+    pdf.set_font("DejaVu", "B", 13)
+    pdf.multi_cell(w, 8, f"ĐỀ KIỂM TRA TOÁN - LỚP {so_lop}\nTHỜI GIAN: {thoi_gian_phut} PHÚT", align="C")
+    pdf.ln(4)
 
     # Thong tin chung
     pdf.set_font("DejaVu", "", 10)
-    pdf.cell(0, 7, f"Tổng điểm: 100 điểm", ln=True)
+    pdf.cell(w, 6, "Tổng điểm: 100 điểm", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(3)
 
     so_thu_tu = 1
 
     # Phan trac nghiem
     if cau_trac_nghiem:
-        pdf.set_font("DejaVu", "B", 12)
-        pdf.cell(0, 10, "PHẦN I: TRẮC NGHIỆM", ln=True)
+        pdf.set_font("DejaVu", "B", 11)
+        pdf.cell(w, 8, "PHẦN I: TRẮC NGHIỆM", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
 
         for i, cau in enumerate(cau_trac_nghiem):
             diem = diem_trac_nghiem[i]
             pdf.set_font("DejaVu", "B", 10)
-            pdf.multi_cell(0, 7, f"Câu {so_thu_tu} ({diem} điểm): {cau['noi_dung']}")
+            pdf.multi_cell(w, 6, f"Câu {so_thu_tu} ({diem} điểm): {cau['noi_dung']}")
 
-            pdf.set_font("DejaVu", "", 10)
+            pdf.set_font("DejaVu", "", 9)
             lua_chon = cau["lua_chon"]
             # Hien thi moi lua chon tren 1 dong rieng de tranh loi tran ngang
-            pdf.multi_cell(0, 6, f"  A. {lua_chon[0]}")
-            pdf.multi_cell(0, 6, f"  B. {lua_chon[1]}")
-            pdf.multi_cell(0, 6, f"  C. {lua_chon[2]}")
-            pdf.multi_cell(0, 6, f"  D. {lua_chon[3]}")
+            for j, lc in enumerate(lua_chon):
+                nhan = chr(65 + j)  # A, B, C, D
+                pdf.cell(5, 5, "")  # Thut le
+                pdf.multi_cell(w - 5, 5, f"{nhan}. {lc}")
             pdf.ln(2)
             so_thu_tu += 1
 
     # Phan tu luan
     if cau_tu_luan:
-        pdf.set_font("DejaVu", "B", 12)
+        pdf.set_font("DejaVu", "B", 11)
         phan = "II" if cau_trac_nghiem else "I"
-        pdf.cell(0, 10, f"PHẦN {phan}: TỰ LUẬN", ln=True)
+        pdf.cell(w, 8, f"PHẦN {phan}: TỰ LUẬN", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(2)
 
         for i, cau in enumerate(cau_tu_luan):
             diem = diem_tu_luan[i]
             pdf.set_font("DejaVu", "B", 10)
-            pdf.multi_cell(0, 7, f"Câu {so_thu_tu} ({diem} điểm): {cau['noi_dung']}")
+            pdf.multi_cell(w, 6, f"Câu {so_thu_tu} ({diem} điểm): {cau['noi_dung']}")
             pdf.ln(3)
             so_thu_tu += 1
 
-    # Footer ban quyen - neo vao cuoi trang cuoi cung
-    pdf.set_y(-25)
-    pdf.set_font("DejaVu", "", 9)
-    pdf.cell(0, 10, "Bản quyền của Nguyễn Kim Thu - Trường Phùng Hưng", ln=True, align="C")
-
     # Xuat PDF ra bytes
-    return pdf.output(dest="S")
+    return bytes(pdf.output())
 
 
 # === GIAO DIEN STREAMLIT === #
