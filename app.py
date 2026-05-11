@@ -8,7 +8,6 @@ Ung dung Tao De Kiem Tra Toan
 import os
 import io
 import zipfile
-import math
 import random
 
 import requests
@@ -49,6 +48,12 @@ def tai_font():
                             out.write(f.read())
     except Exception as e:
         st.error(f"Loi khi tai font: {e}")
+        return None
+
+    # Kiem tra lai sau khi tai xong
+    if not os.path.exists(font_regular) or not os.path.exists(font_bold):
+        st.error("Tai font khong thanh cong. Vui long thu lai.")
+        return None
 
     return thu_muc_font
 
@@ -112,7 +117,6 @@ def tao_cau_hoi_trac_nghiem(lop, so_cau):
     }
 
     # Dap an mau cho cac cau hoi
-    dap_an_mau = ["A", "B", "C", "D"]
     lua_chon_mau = {
         "Lớp 6": [
             ["19", "27", "23", "21"],
@@ -167,12 +171,17 @@ def tao_cau_hoi_trac_nghiem(lop, so_cau):
     ds_cau_hoi = ngan_hang.get(lop, ngan_hang["Lớp 6"])
     ds_lua_chon = lua_chon_mau.get(lop, lua_chon_mau["Lớp 6"])
 
+    # Tao danh sach chi muc va xao tron de ngau nhien hoa thu tu cau hoi
+    indices = list(range(len(ds_cau_hoi)))
+    random.shuffle(indices)
+
     for i in range(so_cau):
-        idx = i % len(ds_cau_hoi)
+        # Voi so cau vuot qua ngan hang (du lieu mau), dung modulo nhung thu tu da xao tron
+        idx = indices[i % len(ds_cau_hoi)]
         cau_hoi_list.append({
             "noi_dung": ds_cau_hoi[idx],
             "lua_chon": ds_lua_chon[idx],
-            "dap_an": random.choice(dap_an_mau),
+            "dap_an": "A",  # Dap an dung luon la phan tu dau tien trong danh sach lua chon
         })
 
     return cau_hoi_list
@@ -215,8 +224,13 @@ def tao_cau_hoi_tu_luan(lop, so_cau):
 
     ds_cau_hoi = ngan_hang.get(lop, ngan_hang["Lớp 6"])
 
+    # Tao danh sach chi muc va xao tron de ngau nhien hoa thu tu cau hoi
+    indices = list(range(len(ds_cau_hoi)))
+    random.shuffle(indices)
+
     for i in range(so_cau):
-        idx = i % len(ds_cau_hoi)
+        # Voi so cau vuot qua ngan hang (du lieu mau), dung modulo nhung thu tu da xao tron
+        idx = indices[i % len(ds_cau_hoi)]
         cau_hoi_list.append({
             "noi_dung": ds_cau_hoi[idx],
         })
@@ -244,6 +258,11 @@ def tinh_diem(tong_cau, tong_diem=100):
 def tao_pdf(lop, thoi_gian_phut, cau_trac_nghiem, cau_tu_luan, diem_trac_nghiem, diem_tu_luan):
     """Tao file PDF de kiem tra voi font DejaVu Sans ho tro tieng Viet"""
     thu_muc_font = tai_font()
+
+    # Kiem tra font da duoc tai chua
+    if thu_muc_font is None:
+        return None
+
     font_path = os.path.join(thu_muc_font, "DejaVuSans.ttf")
     font_bold_path = os.path.join(thu_muc_font, "DejaVuSans-Bold.ttf")
 
@@ -285,7 +304,9 @@ def tao_pdf(lop, thoi_gian_phut, cau_trac_nghiem, cau_tu_luan, diem_trac_nghiem,
 
             pdf.set_font("DejaVu", "", 10)
             lua_chon = cau["lua_chon"]
-            pdf.cell(0, 6, f"    A. {lua_chon[0]}        B. {lua_chon[1]}        C. {lua_chon[2]}        D. {lua_chon[3]}", ln=True)
+            # Hien thi 2 lua chon moi dong de tranh bi cat khi van ban dai
+            pdf.multi_cell(0, 6, f"    A. {lua_chon[0]}        B. {lua_chon[1]}")
+            pdf.multi_cell(0, 6, f"    C. {lua_chon[2]}        D. {lua_chon[3]}")
             pdf.ln(2)
             so_thu_tu += 1
 
@@ -303,8 +324,8 @@ def tao_pdf(lop, thoi_gian_phut, cau_trac_nghiem, cau_tu_luan, diem_trac_nghiem,
             pdf.ln(3)
             so_thu_tu += 1
 
-    # Footer ban quyen - bat buoc o trang cuoi
-    pdf.ln(10)
+    # Footer ban quyen - neo vao cuoi trang cuoi cung
+    pdf.set_y(-25)
     pdf.set_font("DejaVu", "", 9)
     pdf.cell(0, 10, "Bản quyền của Nguyễn Kim Thu - Trường Phùng Hưng", ln=True, align="C")
 
